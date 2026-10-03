@@ -1,0 +1,1249 @@
+<title>Dora Cacarique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;800&display=swap">
+<style>
+  :root{
+    --bg:#EAF6FF;
+    --bg2:#FFE9B8;
+    --panel:#FFFFFF;
+    --ink:#1E2A2F;
+    --ink-dim:#52636A;
+    --accent:#FF8A3D;
+    --accent-ink:#FFFFFF;
+    --road:#3A3A42;
+    --road-line:#F4D35E;
+    --grass:#4FA64A;
+    --grass-dark:#2F7A34;
+    --water:#1E88A8;
+    --water-dark:#166A85;
+    --forest:#1B4332;
+    --sun:#FFC94D;
+    --danger:#E6483C;
+    --card-border: rgba(0,0,0,.08);
+    --shadow: 0 10px 30px rgba(20,40,50,.12);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1420; --bg2:#1B2436; --panel:#161F2E; --ink:#EAF2F6; --ink-dim:#9FB0BC;
+      --accent:#FF9A52; --accent-ink:#1A1206; --road:#20222B; --road-line:#E8C65B;
+      --grass:#2E7D32; --grass-dark:#1F5A24; --water:#145C73; --water-dark:#0E4357;
+      --forest:#0F2A20; --sun:#FFC94D; --danger:#FF6B5E; --card-border:rgba(255,255,255,.08);
+      color-scheme: dark;
+    }
+    :root:not([data-theme="light"]) .stat.money .value{ color: var(--sun); }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1420; --bg2:#1B2436; --panel:#161F2E; --ink:#EAF2F6; --ink-dim:#9FB0BC;
+    --accent:#FF9A52; --accent-ink:#1A1206; --road:#20222B; --road-line:#E8C65B;
+    --grass:#2E7D32; --grass-dark:#1F5A24; --water:#145C73; --water-dark:#0E4357;
+    --forest:#0F2A20; --sun:#FFC94D; --danger:#FF6B5E; --card-border:rgba(255,255,255,.08);
+    color-scheme: dark;
+  }
+  :root[data-theme="dark"] .stat.money .value{ color: var(--sun); }
+
+  *{ box-sizing: border-box; }
+  body{
+    background: radial-gradient(120% 90% at 50% -10%, var(--bg2), var(--bg) 60%);
+    color: var(--ink);
+    font-family: "Nunito", -apple-system, system-ui, sans-serif;
+    min-height: 100%;
+    padding: 20px 16px 28px;
+    display: flex;
+    justify-content: center;
+  }
+  .app{ width: 100%; max-width: 760px; display: flex; flex-direction: column; gap: 14px; }
+
+  h1{
+    font-family: "Fredoka", "Nunito", sans-serif;
+    font-weight: 700;
+    font-size: clamp(26px, 5vw, 36px);
+    margin: 0;
+    letter-spacing: .3px;
+    text-wrap: balance;
+  }
+  .subtitle{ margin: 2px 0 0; color: var(--ink-dim); font-size: 14px; font-weight: 600; }
+
+  header.top{ display:flex; align-items:flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+  .stats{ display:flex; gap: 10px; flex-wrap: wrap; }
+  .stat{
+    background: var(--panel);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 8px 14px;
+    text-align: center;
+    min-width: 72px;
+    box-shadow: var(--shadow);
+  }
+  .stat .label{ font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-dim); font-weight: 800; }
+  .stat .value{ font-family:"Fredoka",sans-serif; font-size: 20px; font-weight:700; font-variant-numeric: tabular-nums; }
+  .stat.money .value{ color: #B5790A; }
+  .stat.money{ cursor: pointer; transition: box-shadow .15s, transform .15s; }
+  .stat.money:hover{ box-shadow: 0 10px 24px rgba(255,201,77,.4); }
+  .stat.money:active{ transform: translateY(1px); }
+  .stat.birdbtn{ cursor: pointer; transition: box-shadow .15s, transform .15s; padding: 6px 12px; }
+  .stat.birdbtn:hover{ box-shadow: 0 10px 24px rgba(79,168,216,.4); }
+  .stat.birdbtn:active{ transform: translateY(1px); }
+  .bird-preview{ display:block; margin: 2px auto 0; }
+  .hearts{ font-size: 18px; letter-spacing: 2px; }
+
+  .shop-money{ font-family:"Fredoka",sans-serif; font-size: 28px; font-weight:700; color: #FFD166; }
+  .shop-list{ width:100%; max-width: 380px; max-height: min(55vh, 320px); overflow-y: auto; display:flex; flex-direction:column; gap:8px; text-align:left; }
+  .shop-section{ font-size:11px; text-transform:uppercase; letter-spacing:.08em; font-weight:800; color:#B9D6E0; margin: 4px 0 -2px; }
+  .shop-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16);
+    border-radius: 12px; padding: 10px 12px;
+  }
+  .shop-row.owned, .shop-row.locked{ opacity:.6; }
+  .shop-row .name{ font-size: 13px; font-weight:700; }
+  .shop-row .status{ font-size: 12px; color:#CFE0E8; white-space:nowrap; }
+  .shop-row button{
+    background: var(--accent); color: var(--accent-ink); border-radius: 999px;
+    padding: 7px 14px; font-size: 12.5px; white-space:nowrap; flex: 0 0 auto;
+  }
+  .shop-row button:disabled{ opacity:.4; cursor: not-allowed; }
+
+  .skin-grid{
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(92px,1fr)); gap:10px;
+    width:100%; max-width: 480px; max-height: min(55vh, 360px); overflow-y: auto;
+  }
+  .skin-card{
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16);
+    border-radius: 12px; padding: 10px 8px; display:flex; flex-direction:column;
+    align-items:center; gap:6px;
+  }
+  .skin-card.locked{ opacity:.6; }
+  .skin-swatch{
+    width:30px; height:30px; border-radius:50%; border: 2px solid rgba(255,255,255,.6);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.2);
+  }
+  .skin-card .name{ font-size: 11.5px; font-weight:700; text-align:center; line-height:1.25; }
+  .skin-card button{
+    background: var(--accent); color: var(--accent-ink); border-radius: 999px;
+    padding: 5px 11px; font-size: 11.5px; white-space:nowrap;
+  }
+  .skin-card button:disabled{ opacity:.45; cursor: not-allowed; }
+  .skin-card .equipped{ font-size: 11px; font-weight:800; color:#8FD14F; }
+
+  .board-wrap{ display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-start; justify-content: center; }
+
+  .stage{
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--card-border);
+    width: min(100%, 528px);
+    flex: 1 1 420px;
+    background: var(--forest);
+  }
+  canvas{ display:block; width: 100%; height: auto; image-rendering: -webkit-optimize-contrast; }
+
+  .overlay{
+    position: absolute; inset: 0;
+    background: rgba(10,16,22,.72);
+    color: #fff;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap: 12px; text-align:center; padding: 20px;
+    backdrop-filter: blur(2px);
+  }
+  .overlay h2{ font-family:"Fredoka",sans-serif; margin:0; font-size: clamp(22px,6vw,30px); }
+  .overlay p{ margin:0; max-width: 360px; line-height:1.5; color:#E7EEF2; font-size: 14px; }
+  .overlay .legend{ display:flex; gap:16px; font-size: 24px; flex-wrap: wrap; justify-content:center; }
+  .overlay .legend span{ display:flex; flex-direction:column; align-items:center; gap:4px; font-size: 11px; color:#CFE0E8; font-weight:700;}
+
+  button{ font-family:"Fredoka", sans-serif; font-weight:600; border:none; cursor:pointer; }
+  .btn-primary{
+    background: var(--accent); color: var(--accent-ink);
+    padding: 12px 26px; border-radius: 999px; font-size: 16px;
+    box-shadow: 0 6px 16px rgba(255,138,61,.35);
+  }
+  .btn-primary:active{ transform: translateY(1px); }
+  .btn-ghost{
+    background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.5);
+    padding: 8px 18px; border-radius: 999px; font-size: 13px;
+  }
+
+  .side-panel{
+    background: var(--panel);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: var(--shadow);
+    width: min(100%, 220px);
+    flex: 1 1 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  @media (max-width: 640px){
+    .board-wrap{ flex-direction: column; align-items: stretch; }
+    .stage{ width: 100%; flex-basis: auto; }
+    .side-panel{ width: 100%; flex-basis: auto; }
+  }
+  .side-panel h3{ margin:0; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-dim); font-weight:800; }
+  .worm-status{
+    display:flex; align-items:center; gap:10px;
+    background: var(--bg); border-radius: 12px; padding: 8px 10px;
+    font-weight: 700; font-size: 13px; color: var(--ink-dim);
+  }
+  .worm-status.active{ color: var(--ink); }
+  .worm-status .ic{ font-size: 22px; filter: grayscale(1) opacity(.5); transition: filter .2s; }
+  .worm-status.active .ic{ filter: none; }
+
+  .chick-row{ display:flex; align-items:center; gap:8px; }
+  .chick-row .ic{ font-size: 20px; flex: 0 0 auto; }
+  .chick-row .bar{
+    flex: 1 1 auto; height: 10px; border-radius: 999px; background: var(--bg);
+    border: 1px solid var(--card-border); overflow:hidden;
+  }
+  .chick-row .fill{ height: 100%; border-radius: 999px; background: linear-gradient(90deg, #3CB043, #8FD14F); transition: width .25s linear, background .25s; }
+  .chick-row .fill.warn{ background: linear-gradient(90deg, #E8A33D, #FFC94D); }
+  .chick-row .fill.crit{ background: linear-gradient(90deg, #C62828, #E6483C); }
+
+  .controls{ display:flex; align-items:center; justify-content:center; gap: 22px; flex-wrap: wrap; }
+  .dpad{ display:grid; grid-template-columns: 52px 52px 52px; grid-template-rows: 52px 52px 52px; gap: 6px; }
+  .dpad button{
+    background: var(--panel); border:1px solid var(--card-border); border-radius: 14px;
+    font-size: 20px; color: var(--ink); box-shadow: var(--shadow);
+    display:flex; align-items:center; justify-content:center; touch-action: manipulation;
+  }
+  .dpad button:active{ background: var(--accent); color: var(--accent-ink); }
+  .dpad .up{ grid-column:2; grid-row:1; }
+  .dpad .left{ grid-column:1; grid-row:2; }
+  .dpad .down{ grid-column:2; grid-row:2; }
+  .dpad .right{ grid-column:3; grid-row:2; }
+  .dpad .fill{ visibility:hidden; }
+
+  .side-actions{ display:flex; flex-direction:column; gap:8px; align-items:center; }
+  .icon-btn{
+    background: var(--panel); border:1px solid var(--card-border); border-radius: 12px;
+    padding: 10px 16px; font-size: 13px; color: var(--ink-dim); box-shadow: var(--shadow);
+  }
+
+  footer.hint{ text-align:center; color: var(--ink-dim); font-size: 12px; font-weight:700; }
+
+  @media (prefers-reduced-motion: reduce){ *{ transition: none !important; } }
+</style>
+
+<div class="app">
+  <header class="top">
+    <div>
+      <h1>Dora Cacarique</h1>
+      <p class="subtitle">Atravessa a rua e o lago, busca minhocas, alimenta os pintainhos.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="label">Pontos</div><div class="value" id="scoreVal">0</div></div>
+      <div class="stat"><div class="label">Recorde</div><div class="value" id="bestVal">0</div></div>
+      <button type="button" class="stat money" id="moneyBtn" title="Abrir a loja"><div class="label">Loja 🛍️</div><div class="value" id="moneyVal">0 €</div></button>
+      <button type="button" class="stat birdbtn" id="skinBtn" title="Escolher o pássaro">
+        <div class="label">Pássaro</div>
+        <canvas id="birdPreview" width="32" height="32" class="bird-preview"></canvas>
+      </button>
+      <div class="stat"><div class="label">Vidas</div><div class="value hearts" id="livesVal">❤❤❤</div></div>
+    </div>
+  </header>
+
+  <div class="board-wrap">
+    <div class="stage" id="stage">
+      <canvas id="game" width="528" height="480"></canvas>
+
+      <div class="overlay" id="startOverlay">
+        <h2>Dora Cacarique</h2>
+        <p>A Dora tem de atravessar a estrada e saltar entre os ramos no lago sem cair, chegar à floresta para apanhar uma minhoca, e voltar ao ninho para alimentar os pintainhos — antes que eles fiquem com muita fome!</p>
+        <div class="legend">
+          <span>🚲🏍️🚗🚌<br>evita</span>
+          <span>🐊<br>evita</span>
+          <span>🪱<br>apanha</span>
+          <span>🐤<br>alimenta</span>
+        </div>
+        <button class="btn-primary" id="startBtn">Começar a jogar</button>
+        <p style="font-size:12px;opacity:.8">Usa as setas, WASD ou os botões no ecrã</p>
+      </div>
+
+      <div class="overlay" id="gameOverOverlay" style="display:none">
+        <h2 id="gameOverTitle">Fim de jogo</h2>
+        <p id="gameOverMsg">Os pintainhos ficaram com muita fome.</p>
+        <div class="stats" style="justify-content:center">
+          <div class="stat"><div class="label">Pontos</div><div class="value" id="finalScore">0</div></div>
+          <div class="stat"><div class="label">Recorde</div><div class="value" id="finalBest">0</div></div>
+        </div>
+        <button class="btn-primary" id="retryBtn">Jogar outra vez</button>
+      </div>
+
+      <div class="overlay" id="pauseOverlay" style="display:none">
+        <h2>Pausa</h2>
+        <button class="btn-primary" id="resumeBtn">Continuar</button>
+      </div>
+
+      <div class="overlay" id="shopOverlay" style="display:none">
+        <h2>Loja</h2>
+        <div class="shop-money" id="shopMoney">💰 0 €</div>
+        <div class="shop-list" id="shopList"></div>
+        <button class="btn-primary" id="closeShopBtn">Fechar</button>
+      </div>
+
+      <div class="overlay" id="skinOverlay" style="display:none">
+        <h2>Pássaros</h2>
+        <div class="shop-money" id="skinMoney">💰 0 €</div>
+        <div class="skin-grid" id="skinGrid"></div>
+        <button class="btn-primary" id="closeSkinBtn">Fechar</button>
+      </div>
+    </div>
+
+    <div class="side-panel">
+      <div>
+        <h3>Minhoca</h3>
+        <div class="worm-status" id="wormStatus"><span class="ic">🪱</span><span id="wormText">à procura na floresta</span></div>
+      </div>
+      <div>
+        <h3>Ninho</h3>
+        <div style="display:flex;flex-direction:column;gap:8px" id="chickList"></div>
+      </div>
+      <div style="margin-top:auto">
+        <button class="icon-btn" id="pauseBtn" style="width:100%">⏸ Pausa</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="dpad">
+      <button class="up" data-dir="up" aria-label="Cima">▲</button>
+      <div class="fill"></div>
+      <button class="left" data-dir="left" aria-label="Esquerda">◀</button>
+      <button class="down" data-dir="down" aria-label="Baixo">▼</button>
+      <button class="right" data-dir="right" aria-label="Direita">▶</button>
+    </div>
+  </div>
+
+  <footer class="hint">Setas / WASD para mover · cada entrega de minhoca pontua e alimenta o pintainho mais esfomeado</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var canvas = document.getElementById('game');
+  var ctx = canvas.getContext('2d');
+  var birdPreviewCanvas = document.getElementById('birdPreview');
+  var birdPreviewCtx = birdPreviewCanvas.getContext('2d');
+  var TILE = 48, COLS = 11, ROWS = 10;
+  var W = COLS*TILE, H = ROWS*TILE;
+
+  // row layout (0 = top/forest .. 9 = bottom/nest)
+  var ROW = { FOREST:0, LAKE1:1, LAKE2:2, LAKE3:3, MEDIAN:4, ST1:5, ST2:6, ST3:7, ST4:8, NEST:9 };
+  var NEST_COL = 5;
+
+  var EMOJI = { car:"🚗", bus:"🚌", croc:"🐊", worm:"🪱", tree:"🌳" };
+
+  var NEST_TIERS = [
+    { name:'Sem ninho' },
+    { name:'Ninho de folhas', cost:30 },
+    { name:'Ninho de palha', cost:30 },
+    { name:'Ninho de palha com flores', cost:60 },
+    { name:'Ninho de palha com mais flores', cost:60 },
+    { name:'Ninho grande de palha e flores', cost:60 },
+    { name:'Ninho dourado', cost:60 },
+  ];
+  var LIFE_COST = 100;
+  var INFINITE_LIVES_COST = 300;
+
+  var BIRD_SKINS = [
+    { id:'branco',        name:'Branco',             cost:0,   body:'#F5F5F5', wing:'#D9D9D9', belly:'#FFFFFF' },
+    { id:'amarelo',       name:'Amarelo',            cost:30,  body:'#FFD166', wing:'#F2B52B', belly:'#FFF3D6' },
+    { id:'azul',          name:'Azul',               cost:50,  body:'#4FA8D8', wing:'#3A86B8', belly:'#F4E3C8' },
+    { id:'rosa',          name:'Rosa',               cost:70,  body:'#F28FB0', wing:'#D86E94', belly:'#FFE3EE' },
+    { id:'roxo',          name:'Roxo',               cost:90,  body:'#9B6FD1', wing:'#7C4FB0', belly:'#EADCFB' },
+    { id:'preto',         name:'Preto',              cost:110, body:'#3A3A42', wing:'#232328', belly:'#6B6B74' },
+    { id:'arcoiris',      name:'Arco-íris',          cost:130, rainbow:true,   belly:'#FFFFFF' },
+    { id:'brancopreto',   name:'Branco com preto',   cost:150, body:'#F5F5F5', wing:'#232328', belly:'#FFFFFF', accent:'#232328' },
+    { id:'roxorosa',      name:'Roxo com rosa',      cost:170, body:'#9B6FD1', wing:'#F28FB0', belly:'#F6E3F0', accent:'#F28FB0' },
+    { id:'dourado',       name:'Dourado',            cost:200, body:'#E0A638', wing:'#B07E24', belly:'#FFE9A8' },
+    { id:'prata',         name:'Prata',              cost:230, body:'#C7CDD1', wing:'#9AA3A8', belly:'#F0F2F3' },
+    { id:'douradobranco', name:'Dourado com branco', cost:260, body:'#F5F5F5', wing:'#E0A638', belly:'#FFFFFF', accent:'#E0A638' },
+  ];
+
+  function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+  function mod(n,m){ return ((n%m)+m)%m; }
+
+  // ---------- persistence ----------
+  function loadBest(){
+    try { return parseInt(localStorage.getItem('dora_best')||'0',10) || 0; } catch(e){ return 0; }
+  }
+  function saveBest(v){
+    try { localStorage.setItem('dora_best', String(v)); } catch(e){}
+  }
+  var STARTER_MONEY = 30;
+  function loadMoney(){
+    try {
+      var raw = localStorage.getItem('dora_money');
+      if (raw === null){
+        // first time playing: starter bonus, granted once
+        localStorage.setItem('dora_money', String(STARTER_MONEY));
+        return STARTER_MONEY;
+      }
+      return parseInt(raw,10) || 0;
+    } catch(e){ return STARTER_MONEY; }
+  }
+  function saveMoney(v){
+    try { localStorage.setItem('dora_money', String(v)); } catch(e){}
+  }
+  function loadNestTier(){
+    try { return clamp(parseInt(localStorage.getItem('dora_nest_tier')||'0',10)||0, 0, NEST_TIERS.length-1); } catch(e){ return 0; }
+  }
+  function saveNestTier(v){
+    try { localStorage.setItem('dora_nest_tier', String(v)); } catch(e){}
+  }
+  function loadInfiniteLives(){
+    try { return localStorage.getItem('dora_infinite_lives') === '1'; } catch(e){ return false; }
+  }
+  function saveInfiniteLives(v){
+    try { localStorage.setItem('dora_infinite_lives', v ? '1' : '0'); } catch(e){}
+  }
+  function loadOwnedSkins(){
+    try {
+      var arr = JSON.parse(localStorage.getItem('dora_owned_skins') || '["branco"]');
+      if (!Array.isArray(arr) || arr.indexOf('branco') === -1) arr = ['branco'].concat(arr||[]);
+      return arr;
+    } catch(e){ return ['branco']; }
+  }
+  function saveOwnedSkins(arr){
+    try { localStorage.setItem('dora_owned_skins', JSON.stringify(arr)); } catch(e){}
+  }
+  function loadCurrentSkin(){
+    try { return localStorage.getItem('dora_current_skin') || 'branco'; } catch(e){ return 'branco'; }
+  }
+  function saveCurrentSkin(id){
+    try { localStorage.setItem('dora_current_skin', id); } catch(e){}
+  }
+  function skinById(id){
+    for (var i=0;i<BIRD_SKINS.length;i++) if (BIRD_SKINS[i].id === id) return BIRD_SKINS[i];
+    return BIRD_SKINS[0];
+  }
+
+  // ---------- lanes ----------
+  function makeLane(opts){
+    var items = [];
+    var track = W + opts.w*2 + 40;
+    for (var i=0;i<opts.count;i++){
+      items.push({ x: (i*(track/opts.count)), w: opts.w, type: opts.type || 'solid', kind: opts.kind });
+    }
+    return { row: opts.row, dir: opts.dir, speed: opts.speed, items: items, track: track, color: opts.color, label: opts.label, kind: opts.kind };
+  }
+
+  function buildLanes(){
+    return [
+      makeLane({row:ROW.ST1, dir:-1, speed:95,  w:34, count:3, kind:'bike', color:'#2E86AB'}),
+      makeLane({row:ROW.ST2, dir: 1, speed:125, w:40, count:3, kind:'moto', color:'#C94277'}),
+      makeLane({row:ROW.ST3, dir:-1, speed:105, w:56, count:3, kind:'car',  color:'#E0574A'}),
+      makeLane({row:ROW.ST4, dir: 1, speed:70,  w:92, count:2, kind:'bus',  color:'#D9A441'}),
+      makeLane({row:ROW.LAKE1, dir: 1, speed:58, w:76, count:3, kind:'log'}),
+      makeLane({row:ROW.LAKE2, dir:-1, speed:72, w:70, count:4, kind:'logcroc'}),
+      makeLane({row:ROW.LAKE3, dir: 1, speed:66, w:96, count:3, kind:'log'}),
+    ];
+  }
+  // mark every 3rd item on LAKE2 as crocodile
+  function markCrocs(lanes){
+    lanes.forEach(function(l){
+      if (l.row === ROW.LAKE2){
+        l.items.forEach(function(it, i){ it.type = (i % 3 === 1) ? 'croc' : 'solid'; it.w = (it.type==='croc') ? 58 : 70; });
+      }
+    });
+  }
+
+  // ---------- game state ----------
+  var state;
+  function freshState(){
+    return {
+      mode: 'start', // start | playing | paused | gameover
+      score: 0,
+      best: loadBest(),
+      money: loadMoney(),
+      nestTier: loadNestTier(),
+      infiniteLives: loadInfiniteLives(),
+      ownedSkins: loadOwnedSkins(),
+      birdSkin: loadCurrentSkin(),
+      lives: 3,
+      speedMul: 1,
+      deliveries: 0,
+      bird: { x: NEST_COL*TILE, row: ROW.NEST, invuln: 0 },
+      carryingWorm: false,
+      worm: { active: true, col: 2 + Math.floor(Math.random()*7) },
+      chicks: [ {hunger:100}, {hunger:100}, {hunger:100} ],
+      hungerRate: 1.9, // per second
+      lanes: buildLanes(),
+      floaters: [],
+      lastMove: 0,
+      gameOverReason: '',
+      t: 0,
+    };
+  }
+
+  function colOf(x){ return clamp(Math.round(x/TILE), 0, COLS-1); }
+
+  function resetAfterDeath(){
+    state.bird.x = NEST_COL*TILE;
+    state.bird.row = ROW.NEST;
+    state.bird.invuln = 1.2;
+    if (state.carryingWorm){
+      state.carryingWorm = false;
+      state.worm.active = true;
+      state.worm.col = 2 + Math.floor(Math.random()*7);
+    }
+  }
+
+  function loseLife(reason){
+    if (state.bird.invuln > 0) return;
+    playTone('hit');
+    if (state.infiniteLives){
+      resetAfterDeath();
+      return;
+    }
+    state.lives -= 1;
+    if (state.lives <= 0){
+      endGame(reason);
+    } else {
+      resetAfterDeath();
+    }
+  }
+
+  function endGame(reason){
+    state.mode = 'gameover';
+    state.gameOverReason = reason;
+    if (state.score > state.best){ state.best = state.score; saveBest(state.best); }
+    syncUI();
+    var titles = { starve: 'Os pintainhos ficaram esfomeados!', life: 'A Dora já não tem mais vidas.' };
+    document.getElementById('gameOverMsg').textContent = titles[reason] || titles.life;
+    document.getElementById('finalScore').textContent = state.score;
+    document.getElementById('finalBest').textContent = state.best;
+    document.getElementById('gameOverOverlay').style.display = 'flex';
+  }
+
+  // ---------- input ----------
+  var KEY_DIR = {
+    ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right',
+    w:'up', s:'down', a:'left', d:'right', W:'up', S:'down', A:'left', D:'right'
+  };
+
+  function tryMove(dir){
+    if (state.mode !== 'playing') return;
+    var now = performance.now();
+    if (now - state.lastMove < 120) return;
+    state.lastMove = now;
+    var b = state.bird;
+    var col = colOf(b.x);
+    if (dir === 'up'){
+      if (b.row > ROW.FOREST){ b.row -= 1; b.x = col*TILE; playTone('hop'); }
+    } else if (dir === 'down'){
+      if (b.row < ROW.NEST){ b.row += 1; b.x = col*TILE; playTone('hop'); }
+    } else if (dir === 'left'){
+      if (col > 0){ b.x = (col-1)*TILE; playTone('hop'); }
+    } else if (dir === 'right'){
+      if (col < COLS-1){ b.x = (col+1)*TILE; playTone('hop'); }
+    }
+    handleArrival();
+  }
+
+  function handleArrival(){
+    var b = state.bird, col = colOf(b.x);
+    if (b.row === ROW.FOREST && state.worm.active && !state.carryingWorm && col === state.worm.col){
+      state.carryingWorm = true;
+      state.worm.active = false;
+      state.score += 10;
+      playTone('pick');
+    }
+    if (b.row === ROW.NEST && state.carryingWorm && Math.abs(col - NEST_COL) <= 1){
+      state.carryingWorm = false;
+      state.score += 100;
+      state.deliveries += 1;
+      state.money += 10;
+      saveMoney(state.money);
+      spawnFloater('+10 €', NEST_COL*TILE+TILE/2, rowY(ROW.NEST)-10, '#FFD166');
+      playTone('feed');
+      // feed hungriest chick
+      var idx = 0, worst = 1e9;
+      state.chicks.forEach(function(c,i){ if (c.hunger < worst){ worst = c.hunger; idx = i; } });
+      state.chicks[idx].hunger = 100;
+      if (state.deliveries % 3 === 0){ state.speedMul = Math.min(1.6, state.speedMul + 0.08); }
+      setTimeout(function(){
+        state.worm.active = true;
+        state.worm.col = 2 + Math.floor(Math.random()*7);
+      }, 500);
+    }
+  }
+
+  function spawnFloater(text, x, y, color){
+    state.floaters.push({ text: text, x: x, y: y, life: 1.1, maxLife: 1.1, color: color || '#FFD166' });
+  }
+
+  function buyNest(){
+    var next = state.nestTier + 1;
+    if (next >= NEST_TIERS.length) return;
+    var cost = NEST_TIERS[next].cost;
+    if (state.money < cost) return;
+    state.money -= cost;
+    state.nestTier = next;
+    saveMoney(state.money);
+    saveNestTier(state.nestTier);
+    playTone('feed');
+    syncUI();
+  }
+
+  function buyLife(){
+    if (state.money < LIFE_COST) return;
+    state.money -= LIFE_COST;
+    state.lives += 1;
+    saveMoney(state.money);
+    playTone('feed');
+    syncUI();
+  }
+
+  function buyInfiniteLives(){
+    if (state.infiniteLives || state.money < INFINITE_LIVES_COST) return;
+    state.money -= INFINITE_LIVES_COST;
+    state.infiniteLives = true;
+    saveMoney(state.money);
+    saveInfiniteLives(true);
+    playTone('feed');
+    syncUI();
+  }
+
+  function buySkin(id){
+    var skin = skinById(id);
+    if (state.ownedSkins.indexOf(id) !== -1){
+      state.birdSkin = id;
+      saveCurrentSkin(id);
+      syncUI();
+      return;
+    }
+    if (state.money < skin.cost) return;
+    state.money -= skin.cost;
+    state.ownedSkins.push(id);
+    state.birdSkin = id;
+    saveMoney(state.money);
+    saveOwnedSkins(state.ownedSkins);
+    saveCurrentSkin(id);
+    playTone('feed');
+    syncUI();
+  }
+
+  // ---------- shop modals ----------
+  var modeBeforeShop = null;
+  function hideBaseOverlays(){
+    document.getElementById('startOverlay').style.display = 'none';
+    document.getElementById('gameOverOverlay').style.display = 'none';
+    document.getElementById('pauseOverlay').style.display = 'none';
+  }
+  function restoreBaseOverlay(){
+    state.mode = modeBeforeShop || 'playing';
+    if (state.mode === 'start'){ document.getElementById('startOverlay').style.display = 'flex'; }
+    else if (state.mode === 'gameover'){ document.getElementById('gameOverOverlay').style.display = 'flex'; }
+    else if (state.mode === 'paused'){ document.getElementById('pauseOverlay').style.display = 'flex'; }
+    else { lastTs = performance.now(); }
+  }
+  function openShop(){
+    if (!state || state.mode === 'shop') return;
+    modeBeforeShop = state.mode;
+    hideBaseOverlays();
+    state.mode = 'shop';
+    renderShopModal();
+    document.getElementById('shopOverlay').style.display = 'flex';
+  }
+  function closeShop(){
+    document.getElementById('shopOverlay').style.display = 'none';
+    restoreBaseOverlay();
+  }
+  function openSkinShop(){
+    if (!state || state.mode === 'shop') return;
+    modeBeforeShop = state.mode;
+    hideBaseOverlays();
+    state.mode = 'shop';
+    renderSkinShop();
+    document.getElementById('skinOverlay').style.display = 'flex';
+  }
+  function closeSkinShop(){
+    document.getElementById('skinOverlay').style.display = 'none';
+    restoreBaseOverlay();
+  }
+  function skinSwatchCSS(skin){
+    if (skin.rainbow) return 'conic-gradient(from 0deg, #FF595E, #FFCA3A, #8AC926, #1982C4, #6A4C93, #FF8FA3, #FF595E)';
+    if (skin.accent) return 'linear-gradient(135deg, ' + skin.body + ' 50%, ' + skin.accent + ' 50%)';
+    return skin.body;
+  }
+  function renderSkinShop(){
+    document.getElementById('skinMoney').textContent = '💰 ' + state.money + ' €';
+    var html = '';
+    BIRD_SKINS.forEach(function(skin){
+      var owned = state.ownedSkins.indexOf(skin.id) !== -1;
+      var equipped = state.birdSkin === skin.id;
+      html += '<div class="skin-card' + (owned ? '' : ' locked') + '">';
+      html += '<div class="skin-swatch" style="background:' + skinSwatchCSS(skin) + '"></div>';
+      html += '<div class="name">' + skin.name + '</div>';
+      if (equipped){
+        html += '<span class="equipped">✓ Em uso</span>';
+      } else if (owned){
+        html += '<button data-skin="' + skin.id + '">Usar</button>';
+      } else {
+        var afford = state.money >= skin.cost;
+        html += '<button data-skin="' + skin.id + '"' + (afford ? '' : ' disabled') + '>' + (skin.cost === 0 ? 'Grátis' : skin.cost + ' €') + '</button>';
+      }
+      html += '</div>';
+    });
+    var grid = document.getElementById('skinGrid');
+    grid.innerHTML = html;
+    grid.querySelectorAll('button[data-skin]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        buySkin(btn.getAttribute('data-skin'));
+        renderSkinShop();
+      });
+    });
+  }
+  function renderShopModal(){
+    document.getElementById('shopMoney').textContent = '💰 ' + state.money + ' €';
+    var html = '<div class="shop-section">Ninhos</div>';
+    for (var i=1;i<NEST_TIERS.length;i++){
+      var tier = NEST_TIERS[i];
+      if (i <= state.nestTier){
+        html += '<div class="shop-row owned"><span class="name">'+tier.name+'</span><span class="status">✓ Tens</span></div>';
+      } else if (i === state.nestTier+1){
+        var afford = state.money >= tier.cost;
+        html += '<div class="shop-row"><span class="name">'+tier.name+'</span><button data-action="buy-nest"'+(afford?'':' disabled')+'>'+tier.cost+' €</button></div>';
+      } else {
+        html += '<div class="shop-row locked"><span class="name">'+tier.name+'</span><span class="status">🔒 '+tier.cost+' €</span></div>';
+      }
+    }
+    html += '<div class="shop-section">Vidas</div>';
+    if (state.infiniteLives){
+      html += '<div class="shop-row owned"><span class="name">Vidas infinitas</span><span class="status">✨ Ativas</span></div>';
+    } else {
+      var affordLife = state.money >= LIFE_COST;
+      var affordInf = state.money >= INFINITE_LIVES_COST;
+      html += '<div class="shop-row"><span class="name">+1 vida</span><button data-action="buy-life"'+(affordLife?'':' disabled')+'>'+LIFE_COST+' €</button></div>';
+      html += '<div class="shop-row"><span class="name">Vidas infinitas</span><button data-action="buy-infinite"'+(affordInf?'':' disabled')+'>'+INFINITE_LIVES_COST+' €</button></div>';
+    }
+    var list = document.getElementById('shopList');
+    list.innerHTML = html;
+    list.querySelectorAll('button[data-action]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var action = btn.getAttribute('data-action');
+        if (action === 'buy-nest') buyNest();
+        else if (action === 'buy-life') buyLife();
+        else if (action === 'buy-infinite') buyInfiniteLives();
+        renderShopModal();
+      });
+    });
+  }
+
+  document.addEventListener('keydown', function(e){
+    if (KEY_DIR[e.key]){
+      e.preventDefault();
+      if (state.mode === 'start'){ startGame(); }
+      tryMove(KEY_DIR[e.key]);
+    } else if (e.key === ' ' || e.key === 'p' || e.key === 'P'){
+      togglePause();
+    }
+  });
+
+  var dpad = document.querySelector('.dpad');
+  dpad.addEventListener('pointerdown', function(e){
+    var btn = e.target.closest('button[data-dir]');
+    if (!btn) return;
+    e.preventDefault();
+    if (state.mode === 'start'){ startGame(); }
+    tryMove(btn.getAttribute('data-dir'));
+    var dir = btn.getAttribute('data-dir');
+    btn.setPointerCapture && btn.setPointerCapture(e.pointerId);
+    clearInterval(btn._rep);
+    btn._rep = setInterval(function(){ tryMove(dir); }, 160);
+  });
+  ['pointerup','pointerleave','pointercancel'].forEach(function(ev){
+    dpad.addEventListener(ev, function(e){
+      var btn = e.target.closest('button[data-dir]');
+      if (btn) clearInterval(btn._rep);
+    });
+  });
+
+  document.getElementById('startBtn').addEventListener('click', startGame);
+  document.getElementById('retryBtn').addEventListener('click', startGame);
+  document.getElementById('pauseBtn').addEventListener('click', togglePause);
+  document.getElementById('resumeBtn').addEventListener('click', togglePause);
+  document.getElementById('moneyBtn').addEventListener('click', openShop);
+  document.getElementById('closeShopBtn').addEventListener('click', closeShop);
+  document.getElementById('skinBtn').addEventListener('click', openSkinShop);
+  document.getElementById('closeSkinBtn').addEventListener('click', closeSkinShop);
+
+  function togglePause(){
+    if (state.mode === 'playing'){
+      state.mode = 'paused';
+      document.getElementById('pauseOverlay').style.display = 'flex';
+    } else if (state.mode === 'paused'){
+      state.mode = 'playing';
+      document.getElementById('pauseOverlay').style.display = 'none';
+      lastTs = performance.now();
+    }
+  }
+
+  function startGame(){
+    state = freshState();
+    markCrocs(state.lanes);
+    state.mode = 'playing';
+    document.getElementById('startOverlay').style.display = 'none';
+    document.getElementById('gameOverOverlay').style.display = 'none';
+    document.getElementById('pauseOverlay').style.display = 'none';
+    lastTs = performance.now();
+    syncUI();
+  }
+
+  // ---------- audio (tiny beeps, no assets) ----------
+  var actx = null;
+  function playTone(kind){
+    try{
+      if (!actx) actx = new (window.AudioContext||window.webkitAudioContext)();
+      var map = { hop:[520,.05], pick:[760,.08], feed:[920,.14], hit:[140,.22] };
+      var cfg = map[kind]; if (!cfg) return;
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = kind==='hit' ? 'sawtooth' : 'sine';
+      o.frequency.value = cfg[0];
+      g.gain.value = 0.06;
+      o.connect(g); g.connect(actx.destination);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + cfg[1]);
+      o.stop(actx.currentTime + cfg[1] + 0.02);
+    }catch(e){}
+  }
+
+  // ---------- update ----------
+  function laneAt(row){
+    for (var i=0;i<state.lanes.length;i++) if (state.lanes[i].row === row) return state.lanes[i];
+    return null;
+  }
+
+  function update(dt){
+    state.t += dt;
+    state.lanes.forEach(function(l){
+      var v = l.dir * l.speed * state.speedMul * dt;
+      l.items.forEach(function(it){
+        it.x += v;
+        if (it.x < -it.w) it.x += l.track;
+        else if (it.x >= l.track - it.w) it.x -= l.track;
+      });
+    });
+
+    // floating money indicators
+    state.floaters.forEach(function(f){ f.y -= 26*dt; f.life -= dt; });
+    state.floaters = state.floaters.filter(function(f){ return f.life > 0; });
+
+    // hunger
+    state.chicks.forEach(function(c){ c.hunger = clamp(c.hunger - state.hungerRate*dt, 0, 100); });
+    if (state.chicks.some(function(c){ return c.hunger <= 0; })){
+      if (state.mode === 'playing') endGame('starve');
+    }
+
+    if (state.bird.invuln > 0) state.bird.invuln -= dt;
+
+    var b = state.bird;
+    var birdW = TILE*0.66;
+    var birdLeft = b.x + (TILE-birdW)/2, birdRight = birdLeft + birdW;
+
+    function overlaps(it){
+      var left = it.x, right = it.x + it.w;
+      return birdRight > left && birdLeft < right;
+    }
+
+    if (b.row === ROW.LAKE1 || b.row === ROW.LAKE2 || b.row === ROW.LAKE3){
+      var lane = laneAt(b.row);
+      var onLog = null, onCroc = false;
+      for (var i=0;i<lane.items.length;i++){
+        var it = lane.items[i];
+        if (overlaps(it)){
+          if (it.type === 'croc') onCroc = true; else onLog = it;
+        }
+      }
+      if (onCroc){
+        loseLife('life');
+      } else if (onLog){
+        b.x += lane.dir * lane.speed * state.speedMul * dt;
+        if (b.x < -birdW*0.4 || b.x > W - TILE + birdW*0.4){ loseLife('life'); }
+      } else {
+        loseLife('life');
+      }
+    } else if (b.row >= ROW.ST1 && b.row <= ROW.ST4){
+      var lane2 = laneAt(b.row);
+      for (var j=0;j<lane2.items.length;j++){
+        if (overlaps(lane2.items[j])){ loseLife('life'); break; }
+      }
+    }
+  }
+
+  // ---------- render ----------
+  function rowY(row){ return row*TILE; }
+
+  function drawRoadRow(y, dashed){
+    ctx.fillStyle = getCSS('--road');
+    ctx.fillRect(0, y, W, TILE);
+    if (dashed){
+      ctx.strokeStyle = getCSS('--road-line');
+      ctx.setLineDash([16,12]);
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(0, y+TILE/2); ctx.lineTo(W, y+TILE/2); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+  function drawWaterRow(y){
+    var g = ctx.createLinearGradient(0,y,0,y+TILE);
+    g.addColorStop(0, getCSS('--water'));
+    g.addColorStop(1, getCSS('--water-dark'));
+    ctx.fillStyle = g;
+    ctx.fillRect(0,y,W,TILE);
+    ctx.strokeStyle = 'rgba(255,255,255,.25)';
+    ctx.lineWidth = 2;
+    for (var k=0;k<4;k++){
+      ctx.beginPath();
+      var yy = y + 10 + k*10 + Math.sin(state.t*2 + k)*2;
+      ctx.moveTo(0, yy);
+      for (var x=0;x<=W;x+=20){ ctx.lineTo(x, yy + Math.sin(x*0.05 + state.t*2)*2); }
+      ctx.stroke();
+    }
+  }
+  function drawGrassRow(y){
+    ctx.fillStyle = getCSS('--grass');
+    ctx.fillRect(0,y,W,TILE);
+    ctx.fillStyle = getCSS('--grass-dark');
+    for (var x=4; x<W; x+=16){ ctx.fillRect(x, y+TILE-6, 3, 6); }
+  }
+  function drawForestRow(y){
+    ctx.fillStyle = getCSS('--forest');
+    ctx.fillRect(0,y,W,TILE);
+    ctx.font = '26px sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (var c=0;c<COLS;c+=2){ ctx.fillText(EMOJI.tree, c*TILE+TILE/2, y+TILE/2); }
+  }
+  function drawFlower(x, y, size, color){
+    ctx.fillStyle = color;
+    for (var k=0;k<5;k++){
+      var a = k*(Math.PI*2/5);
+      ctx.beginPath(); ctx.arc(x+Math.cos(a)*size, y+Math.sin(a)*size, size*0.7, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.fillStyle = '#FFD166';
+    ctx.beginPath(); ctx.arc(x,y,size*0.55,0,Math.PI*2); ctx.fill();
+  }
+
+  function drawNestBowl(tier, cx, cy){
+    if (tier <= 0){
+      ctx.strokeStyle = '#6B4226'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(cx-28, cy+4); ctx.lineTo(cx+28, cy+4); ctx.stroke();
+      return;
+    }
+    var wide = tier >= 5 ? 44 : 34;
+    var ry = wide*0.42;
+    var baseColor = tier === 1 ? '#7CB95F' : (tier === 6 ? '#E0A638' : '#9C6B3E');
+    var rimColor  = tier === 1 ? '#4F8A3A' : (tier === 6 ? '#B07E24' : '#6B4226');
+    ctx.fillStyle = baseColor;
+    ctx.beginPath(); ctx.ellipse(cx, cy+6, wide, ry, 0, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = rimColor; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.ellipse(cx, cy+6, wide, ry, 0, 0, Math.PI*2); ctx.stroke();
+    if (tier !== 1){
+      ctx.strokeStyle = 'rgba(0,0,0,.15)'; ctx.lineWidth = 1.4;
+      for (var s=-wide+6; s<wide; s+=9){ ctx.beginPath(); ctx.moveTo(cx+s, cy+6-ry*0.65); ctx.lineTo(cx+s, cy+6+ry*0.65); ctx.stroke(); }
+    }
+    if (tier === 6){
+      ctx.fillStyle = '#FFE9A8';
+      [[-wide*0.55,-3],[wide*0.5,1],[wide*0.1,-9]].forEach(function(p){
+        ctx.beginPath(); ctx.arc(cx+p[0], cy+6+p[1], 2, 0, Math.PI*2); ctx.fill();
+      });
+    }
+    var flowerCount = tier >= 4 ? 8 : (tier === 3 ? 4 : 0);
+    var palette = tier === 6 ? ['#FFD166','#FFE9A8','#F2B52B'] : ['#F28FB0','#FFFFFF','#C77DFF','#FFADAD'];
+    for (var i=0;i<flowerCount;i++){
+      var t = flowerCount<=1 ? 0.5 : i/(flowerCount-1);
+      var ang = Math.PI*0.12 + t*Math.PI*0.76;
+      var fx = cx + Math.cos(ang)*(wide-5);
+      var fy = (cy+6) - Math.sin(ang)*ry;
+      drawFlower(fx, fy, tier>=5?4:3, palette[i%palette.length]);
+    }
+  }
+
+  function drawHomeTree(y){
+    var cx = NEST_COL*TILE + TILE/2;
+    ctx.fillStyle = '#6B4226';
+    roundRect(cx-9, y-4, 18, TILE*0.85, 6); ctx.fill();
+    ctx.fillStyle = '#2F7A34';
+    ctx.beginPath(); ctx.arc(cx-30, y-16, 22, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx+30, y-16, 22, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#3C9142';
+    ctx.beginPath(); ctx.arc(cx-15, y-28, 25, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx+15, y-28, 25, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#4FA64A';
+    ctx.beginPath(); ctx.arc(cx, y-40, 27, 0, Math.PI*2); ctx.fill();
+
+    var nestCx = cx, nestCy = y + TILE*0.06;
+    drawNestBowl(state.nestTier, nestCx, nestCy);
+    return { cx: nestCx, cy: nestCy };
+  }
+
+  function drawNestRow(y){
+    ctx.fillStyle = getCSS('--grass-dark');
+    ctx.fillRect(0,y,W,TILE);
+    return drawHomeTree(y);
+  }
+
+  function getCSS(varName){
+    return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  }
+
+  function drawLaneItems(lane, y){
+    lane.items.forEach(function(it){
+      var cx = it.x + it.w/2, cy = y + TILE/2;
+      if (lane.row >= ROW.ST1 && lane.row <= ROW.ST4){
+        if (lane.kind === 'bike'){ drawBikeVector(it.x, y, it.w, lane.dir>0); return; }
+        if (lane.kind === 'moto'){ drawMotoVector(it.x, y, it.w, lane.dir>0); return; }
+        ctx.font = (it.w>70? '34px' : '26px') + ' sans-serif';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        var emo = lane.kind==='car'?EMOJI.car:EMOJI.bus;
+        ctx.save();
+        if (lane.dir>0){ ctx.translate(cx,cy); ctx.scale(-1,1); ctx.fillText(emo,0,0); ctx.restore(); }
+        else { ctx.fillText(emo, cx, cy); ctx.restore(); }
+      } else {
+        if (it.type === 'croc'){
+          ctx.font = '30px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+          ctx.save();
+          if (lane.dir>0){ ctx.translate(cx,cy); ctx.scale(-1,1); ctx.fillText(EMOJI.croc,0,0); } else { ctx.fillText(EMOJI.croc, cx, cy); }
+          ctx.restore();
+        } else {
+          ctx.fillStyle = '#9C6B3E';
+          roundRect(it.x, y+TILE*0.28, it.w, TILE*0.44, 8);
+          ctx.fill();
+          ctx.strokeStyle = '#6B4226'; ctx.lineWidth = 2;
+          roundRect(it.x, y+TILE*0.28, it.w, TILE*0.44, 8);
+          ctx.stroke();
+          ctx.strokeStyle = 'rgba(0,0,0,.18)';
+          for (var s=10;s<it.w;s+=14){ ctx.beginPath(); ctx.moveTo(it.x+s,y+TILE*0.3); ctx.lineTo(it.x+s,y+TILE*0.7); ctx.stroke(); }
+        }
+      }
+    });
+  }
+  function drawBikeVector(x, y, w, flip){
+    var cx = x + w/2, cy = y + TILE*0.74, r = w*0.22;
+    ctx.save();
+    ctx.translate(cx, cy);
+    if (flip) ctx.scale(-1,1);
+    ctx.strokeStyle = '#24282C'; ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.arc(-w*0.26, 0, r, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(w*0.26, 0, r, 0, Math.PI*2); ctx.stroke();
+    ctx.strokeStyle = '#2E86AB'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-w*0.26, 0); ctx.lineTo(0, -r*2.1); ctx.lineTo(w*0.26, 0); ctx.lineTo(0, -r*0.3); ctx.closePath();
+    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, -r*2.1); ctx.lineTo(w*0.16, -r*2.3); ctx.stroke();
+    ctx.fillStyle = '#2E86AB';
+    ctx.beginPath(); ctx.ellipse(-w*0.05, -r*2.2, 3, 1.6, 0, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawMotoVector(x, y, w, flip){
+    var cx = x + w/2, cy = y + TILE*0.74, r = w*0.19;
+    ctx.save();
+    ctx.translate(cx, cy);
+    if (flip) ctx.scale(-1,1);
+    ctx.strokeStyle = '#24282C'; ctx.lineWidth = 2.6;
+    ctx.beginPath(); ctx.arc(-w*0.28, 0, r, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(w*0.28, 0, r, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle = '#C94277';
+    roundRect(-w*0.22, -r*1.7, w*0.5, r*1.3, 4); ctx.fill();
+    ctx.fillStyle = '#2B2F33';
+    roundRect(-w*0.06, -r*2.6, w*0.2, r*1.0, 3); ctx.fill();
+    ctx.fillStyle = '#FFD166';
+    ctx.beginPath(); ctx.arc(w*0.3, -r*1.0, 3, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#2B2F33'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(w*0.28, 0); ctx.lineTo(w*0.22, -r*1.3); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-w*0.28, 0); ctx.lineTo(-w*0.12, -r*1.3); ctx.stroke();
+    ctx.restore();
+  }
+
+  function rainbowFill(){
+    var g = ctx.createLinearGradient(-15,-13,15,13);
+    g.addColorStop(0, '#FF595E');
+    g.addColorStop(0.2, '#FFCA3A');
+    g.addColorStop(0.4, '#8AC926');
+    g.addColorStop(0.6, '#1982C4');
+    g.addColorStop(0.8, '#6A4C93');
+    g.addColorStop(1, '#FF8FA3');
+    return g;
+  }
+
+  function drawBirdVector(cx, cy, scale, carrying, skin){
+    skin = skin || BIRD_SKINS[0];
+    var bodyFill = skin.rainbow ? rainbowFill() : skin.body;
+    var wingFill = skin.accent || skin.wing;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(scale, scale);
+    ctx.fillStyle = wingFill;
+    ctx.beginPath(); ctx.moveTo(-11,2); ctx.lineTo(-21,-6); ctx.lineTo(-18,7); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = bodyFill;
+    ctx.beginPath(); ctx.ellipse(0,2,13,11,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = skin.belly;
+    ctx.beginPath(); ctx.ellipse(1,7,8,6,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = wingFill;
+    ctx.beginPath(); ctx.ellipse(-2,3,7,5,0.4,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = bodyFill;
+    ctx.beginPath(); ctx.arc(10,-6,8,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#F2A33B';
+    ctx.beginPath(); ctx.moveTo(17,-6); ctx.lineTo(24,-4); ctx.lineTo(17,-2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#1E2A2F';
+    ctx.beginPath(); ctx.arc(12,-8,1.6,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle = wingFill; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(8,-13); ctx.lineTo(6,-18); ctx.stroke();
+    ctx.restore();
+    if (carrying){
+      ctx.font = '13px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(EMOJI.worm, cx+16*scale, cy-18*scale);
+    }
+  }
+
+  function drawChickVector(cx, cy, scale, alpha){
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(cx, cy);
+    ctx.scale(scale, scale);
+    ctx.fillStyle = '#FFCE45';
+    ctx.beginPath(); ctx.ellipse(0,2,10,9,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(0,-8,7,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#F2B52B';
+    ctx.beginPath(); ctx.ellipse(-6,2,4,6,0.3,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#F2A33B';
+    ctx.beginPath(); ctx.moveTo(-4,-8); ctx.lineTo(-10,-6); ctx.lineTo(-4,-5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#1E2A2F';
+    ctx.beginPath(); ctx.arc(2,-9,1.3,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#F2B52B'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(0,-15); ctx.lineTo(-1,-19); ctx.stroke();
+    ctx.strokeStyle = '#E8832E'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(-3,10); ctx.lineTo(-3,13); ctx.moveTo(3,10); ctx.lineTo(3,13); ctx.stroke();
+    ctx.restore();
+  }
+
+  function roundRect(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    drawForestRow(rowY(ROW.FOREST));
+    drawWaterRow(rowY(ROW.LAKE1));
+    drawWaterRow(rowY(ROW.LAKE2));
+    drawWaterRow(rowY(ROW.LAKE3));
+    drawGrassRow(rowY(ROW.MEDIAN));
+    drawRoadRow(rowY(ROW.ST1), true);
+    drawRoadRow(rowY(ROW.ST2), true);
+    drawRoadRow(rowY(ROW.ST3), true);
+    drawRoadRow(rowY(ROW.ST4), true);
+    var nestCenter = drawNestRow(rowY(ROW.NEST));
+
+    state.lanes.forEach(function(l){ drawLaneItems(l, rowY(l.row)); });
+
+    // worm in forest
+    if (state.worm.active){
+      ctx.font = '22px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(EMOJI.worm, state.worm.col*TILE+TILE/2, rowY(ROW.FOREST)+TILE/2);
+    }
+
+    // chicks inside the nest
+    var chickOffsets = [-32, 0, 32];
+    state.chicks.forEach(function(c, i){
+      drawChickVector(nestCenter.cx + chickOffsets[i], nestCenter.cy, 0.9, 0.5 + 0.5*(c.hunger/100));
+    });
+
+    // bird
+    var b = state.bird;
+    var birdY = (b.row === ROW.NEST) ? (nestCenter.cy - 4) : (rowY(b.row) + TILE/2 - 2);
+    if (!(b.invuln>0 && Math.floor(state.t*8)%2===0)){
+      drawBirdVector(b.x+TILE/2, birdY, 1, state.carryingWorm, skinById(state.birdSkin));
+    }
+
+    // floating money popups
+    state.floaters.forEach(function(f){
+      ctx.globalAlpha = clamp(f.life/f.maxLife, 0, 1);
+      ctx.font = '700 16px Fredoka, sans-serif';
+      ctx.fillStyle = f.color;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(f.text, f.x, f.y);
+      ctx.globalAlpha = 1;
+    });
+  }
+
+  // ---------- UI sync ----------
+  function syncUI(){
+    document.getElementById('scoreVal').textContent = state.score;
+    document.getElementById('bestVal').textContent = state.best;
+    document.getElementById('moneyVal').textContent = state.money + ' €';
+    document.getElementById('livesVal').textContent = state.infiniteLives ? '∞' : (state.lives > 6 ? ('❤×' + state.lives) : ('❤'.repeat(Math.max(0,state.lives)) + '♡'.repeat(Math.max(0,3-state.lives))));
+
+    var ws = document.getElementById('wormStatus'), wt = document.getElementById('wormText');
+    if (state.carryingWorm){ ws.classList.add('active'); wt.textContent = 'a Dora leva a minhoca para o ninho'; }
+    else { ws.classList.remove('active'); wt.textContent = state.worm.active ? 'à espera na floresta' : 'a caminho...'; }
+
+    var list = document.getElementById('chickList');
+    list.innerHTML = '';
+    state.chicks.forEach(function(c){
+      var row = document.createElement('div');
+      row.className = 'chick-row';
+      var cls = c.hunger < 25 ? 'crit' : (c.hunger < 55 ? 'warn' : '');
+      row.innerHTML = '<span class="ic">🐤</span><div class="bar"><div class="fill '+cls+'" style="width:'+c.hunger+'%"></div></div>';
+      list.appendChild(row);
+    });
+
+    renderBirdPreview();
+  }
+
+  function renderBirdPreview(){
+    var prevCtx = ctx;
+    ctx = birdPreviewCtx;
+    ctx.clearRect(0, 0, 32, 32);
+    drawBirdVector(16, 18, 0.85, false, skinById(state.birdSkin));
+    ctx = prevCtx;
+  }
+
+  // ---------- loop ----------
+  var lastTs = 0;
+  function frame(ts){
+    requestAnimationFrame(frame);
+    if (!lastTs) lastTs = ts;
+    var dt = Math.min(0.05, (ts-lastTs)/1000);
+    lastTs = ts;
+    if (state.mode === 'playing'){
+      update(dt);
+      syncUI();
+    }
+    render();
+  }
+
+  // ---------- boot / hot state ----------
+  function boot(saved){
+    state = freshState();
+    markCrocs(state.lanes);
+    if (saved && typeof saved.best === 'number'){ state.best = Math.max(state.best, saved.best); }
+    syncUI();
+    requestAnimationFrame(frame);
+  }
+
+  try{
+    if (window.claude && window.claude.hot){
+      window.claude.hot.snapshot(function(){ return { best: state ? state.best : loadBest() }; });
+      if (window.claude.hot.ready){ window.claude.hot.ready(boot); }
+      else { boot(window.claude.hot.data); }
+    } else {
+      boot(null);
+    }
+  }catch(e){ boot(null); }
+
+})();
+</script>
