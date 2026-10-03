@@ -249,7 +249,7 @@
 
   <div class="board-wrap">
     <div class="stage" id="stage">
-      <canvas id="game" width="528" height="480"></canvas>
+      <canvas id="game" width="528" height="528"></canvas>
 
       <div class="overlay" id="startOverlay">
         <h2>Dora Cacarique</h2>
@@ -330,12 +330,14 @@
   var ctx = canvas.getContext('2d');
   var birdPreviewCanvas = document.getElementById('birdPreview');
   var birdPreviewCtx = birdPreviewCanvas.getContext('2d');
-  var TILE = 48, COLS = 11, ROWS = 10;
+  var TILE = 48, COLS = 11, ROWS = 11;
   var W = COLS*TILE, H = ROWS*TILE;
 
   // row layout (0 = top/forest .. 9 = bottom/nest)
-  var ROW = { FOREST:0, LAKE1:1, LAKE2:2, LAKE3:3, MEDIAN:4, ST1:5, ST2:6, ST3:7, ST4:8, NEST:9 };
+  var ROW = { FOREST_BACK:0, FOREST_FRONT:1, LAKE1:2, LAKE2:3, LAKE3:4, MEDIAN:5, ST1:6, ST2:7, ST3:8, ST4:9, NEST:10 };
   var NEST_COL = 5;
+  var WORM_UP_TIME = 10;
+  var WORM_DOWN_TIME = 5;
 
   var EMOJI = { car:"🚗", bus:"🚌", croc:"🐊", worm:"🪱", tree:"🌳" };
 
@@ -455,6 +457,14 @@
   }
 
   // ---------- game state ----------
+  function makeWormHoles(){
+    return [
+      { row: ROW.FOREST_FRONT, col: 2, phase: 'up',   timer: WORM_UP_TIME },
+      { row: ROW.FOREST_BACK,  col: 5, phase: 'down', timer: 2 },
+      { row: ROW.FOREST_FRONT, col: 8, phase: 'up',   timer: 5 },
+    ];
+  }
+
   var state;
   function freshState(){
     return {
@@ -471,7 +481,7 @@
       deliveries: 0,
       bird: { x: NEST_COL*TILE, row: ROW.NEST, invuln: 0 },
       carryingWorm: false,
-      worm: { active: true, col: 2 + Math.floor(Math.random()*7) },
+      wormHoles: makeWormHoles(),
       chicks: [ {hunger:100}, {hunger:100}, {hunger:100} ],
       hungerRate: 1.9, // per second
       lanes: buildLanes(),
@@ -488,11 +498,7 @@
     state.bird.x = NEST_COL*TILE;
     state.bird.row = ROW.NEST;
     state.bird.invuln = 1.2;
-    if (state.carryingWorm){
-      state.carryingWorm = false;
-      state.worm.active = true;
-      state.worm.col = 2 + Math.floor(Math.random()*7);
-    }
+    state.carryingWorm = false;
   }
 
   function loseLife(reason){
@@ -536,7 +542,7 @@
     var b = state.bird;
     var col = colOf(b.x);
     if (dir === 'up'){
-      if (b.row > ROW.FOREST){ b.row -= 1; b.x = col*TILE; playTone('hop'); }
+      if (b.row > ROW.FOREST_BACK){ b.row -= 1; b.x = col*TILE; playTone('hop'); }
     } else if (dir === 'down'){
       if (b.row < ROW.NEST){ b.row += 1; b.x = col*TILE; playTone('hop'); }
     } else if (dir === 'left'){
@@ -549,11 +555,18 @@
 
   function handleArrival(){
     var b = state.bird, col = colOf(b.x);
-    if (b.row === ROW.FOREST && state.worm.active && !state.carryingWorm && col === state.worm.col){
-      state.carryingWorm = true;
-      state.worm.active = false;
-      state.score += 10;
-      playTone('pick');
+    if (!state.carryingWorm){
+      for (var i=0;i<state.wormHoles.length;i++){
+        var hole = state.wormHoles[i];
+        if (hole.row === b.row && hole.col === col && hole.phase === 'up'){
+          state.carryingWorm = true;
+          hole.phase = 'down';
+          hole.timer = WORM_DOWN_TIME;
+          state.score += 10;
+          playTone('pick');
+          break;
+        }
+      }
     }
     if (b.row === ROW.NEST && state.carryingWorm && Math.abs(col - NEST_COL) <= 1){
       state.carryingWorm = false;
@@ -568,10 +581,6 @@
       state.chicks.forEach(function(c,i){ if (c.hunger < worst){ worst = c.hunger; idx = i; } });
       state.chicks[idx].hunger = 100;
       if (state.deliveries % 3 === 0){ state.speedMul = Math.min(1.6, state.speedMul + 0.08); }
-      setTimeout(function(){
-        state.worm.active = true;
-        state.worm.col = 2 + Math.floor(Math.random()*7);
-      }, 500);
     }
   }
 
@@ -823,6 +832,13 @@
 
   function update(dt){
     state.t += dt;
+    state.wormHoles.forEach(function(hole){
+      hole.timer -= dt;
+      if (hole.timer <= 0){
+        if (hole.phase === 'up'){ hole.phase = 'down'; hole.timer = WORM_DOWN_TIME; }
+        else { hole.phase = 'up'; hole.timer = WORM_UP_TIME; }
+      }
+    });
     state.lanes.forEach(function(l){
       var v = l.dir * l.speed * state.speedMul * dt;
       l.items.forEach(function(it){
@@ -914,12 +930,22 @@
     ctx.fillStyle = getCSS('--grass-dark');
     for (var x=4; x<W; x+=16){ ctx.fillRect(x, y+TILE-6, 3, 6); }
   }
-  function drawForestRow(y){
+  function drawForestRow(y, offset){
     ctx.fillStyle = getCSS('--forest');
     ctx.fillRect(0,y,W,TILE);
     ctx.font = '26px sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    for (var c=0;c<COLS;c+=2){ ctx.fillText(EMOJI.tree, c*TILE+TILE/2, y+TILE/2); }
+    for (var c=(offset||0);c<COLS;c+=2){ ctx.fillText(EMOJI.tree, c*TILE+TILE/2, y+TILE/2); }
+  }
+  function drawWormHole(cx, cy, phase){
+    ctx.fillStyle = 'rgba(0,0,0,.4)';
+    ctx.beginPath(); ctx.ellipse(cx, cy+8, 13, 5.5, 0, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(cx, cy+8, 13, 5.5, 0, 0, Math.PI*2); ctx.stroke();
+    if (phase === 'up'){
+      ctx.font = '22px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(EMOJI.worm, cx, cy);
+    }
   }
   function drawFlower(x, y, size, color){
     ctx.fillStyle = color;
@@ -1137,7 +1163,8 @@
 
   function render(){
     ctx.clearRect(0,0,W,H);
-    drawForestRow(rowY(ROW.FOREST));
+    drawForestRow(rowY(ROW.FOREST_BACK), 0);
+    drawForestRow(rowY(ROW.FOREST_FRONT), 1);
     drawWaterRow(rowY(ROW.LAKE1));
     drawWaterRow(rowY(ROW.LAKE2));
     drawWaterRow(rowY(ROW.LAKE3));
@@ -1150,11 +1177,10 @@
 
     state.lanes.forEach(function(l){ drawLaneItems(l, rowY(l.row)); });
 
-    // worm in forest
-    if (state.worm.active){
-      ctx.font = '22px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText(EMOJI.worm, state.worm.col*TILE+TILE/2, rowY(ROW.FOREST)+TILE/2);
-    }
+    // worm holes in the forest
+    state.wormHoles.forEach(function(hole){
+      drawWormHole(hole.col*TILE+TILE/2, rowY(hole.row)+TILE/2, hole.phase);
+    });
 
     // chicks inside the nest
     var chickOffsets = [-32, 0, 32];
@@ -1189,7 +1215,11 @@
 
     var ws = document.getElementById('wormStatus'), wt = document.getElementById('wormText');
     if (state.carryingWorm){ ws.classList.add('active'); wt.textContent = 'a Dora leva a minhoca para o ninho'; }
-    else { ws.classList.remove('active'); wt.textContent = state.worm.active ? 'à espera na floresta' : 'a caminho...'; }
+    else {
+      ws.classList.remove('active');
+      var upCount = state.wormHoles.filter(function(h){ return h.phase === 'up'; }).length;
+      wt.textContent = upCount > 0 ? (upCount + ' minhoca' + (upCount>1?'s':'') + ' à mostra na floresta') : 'as minhocas estão escondidas...';
+    }
 
     var list = document.getElementById('chickList');
     list.innerHTML = '';
