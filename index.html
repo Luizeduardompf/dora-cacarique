@@ -374,6 +374,7 @@
   var NEST_COL = 5;
   var WORM_UP_TIME = 10;
   var WORM_DOWN_TIME = 5;
+  var WORM_CAPACITY = 2;
   var CROC_CLOSED_TIME = 1.6, CROC_OPEN_TIME = 0.8;
 
   var EMOJI = { car:"🚗", bus:"🚌", croc:"🐊", worm:"🪱", tree:"🌳" };
@@ -545,7 +546,7 @@
       speedMul: 1,
       deliveries: 0,
       bird: { x: NEST_COL*TILE, row: ROW.NEST, invuln: 0 },
-      carryingWorm: false,
+      carryingWorm: 0,
       wormHoles: makeWormHoles(),
       chicks: [ {hunger:100}, {hunger:100}, {hunger:100} ],
       hungerRate: 1.9, // per second
@@ -563,7 +564,7 @@
     state.bird.x = NEST_COL*TILE;
     state.bird.row = ROW.NEST;
     state.bird.invuln = 1.2;
-    state.carryingWorm = false;
+    state.carryingWorm = 0;
   }
 
   function loseLife(reason){
@@ -618,11 +619,11 @@
 
   function handleArrival(){
     var b = state.bird, col = colOf(b.x);
-    if (!state.carryingWorm){
+    if (state.carryingWorm < WORM_CAPACITY){
       for (var i=0;i<state.wormHoles.length;i++){
         var hole = state.wormHoles[i];
         if (hole.row === b.row && hole.col === col && hole.phase === 'up'){
-          state.carryingWorm = true;
+          state.carryingWorm += 1;
           hole.phase = 'down';
           hole.timer = WORM_DOWN_TIME;
           state.score += 10;
@@ -631,19 +632,22 @@
         }
       }
     }
-    if (b.row === ROW.NEST && state.carryingWorm && Math.abs(col - NEST_COL) <= 1){
-      state.carryingWorm = false;
-      state.score += 100;
-      state.deliveries += 1;
-      state.money += 10;
+    if (b.row === ROW.NEST && state.carryingWorm > 0 && Math.abs(col - NEST_COL) <= 1){
+      var delivered = state.carryingWorm;
+      state.carryingWorm = 0;
+      for (var k=0;k<delivered;k++){
+        state.score += 100;
+        state.deliveries += 1;
+        state.money += 10;
+        // feed hungriest chick
+        var idx = 0, worst = 1e9;
+        state.chicks.forEach(function(c,i){ if (c.hunger < worst){ worst = c.hunger; idx = i; } });
+        state.chicks[idx].hunger = 100;
+        if (state.deliveries % 3 === 0){ state.speedMul = Math.min(1.6, state.speedMul + 0.08); }
+      }
       saveMoney(state.money);
-      spawnFloater('+10 €', NEST_COL*TILE+TILE/2, rowY(ROW.NEST)-10, '#FFD166');
+      spawnFloater('+' + (delivered*10) + ' €', NEST_COL*TILE+TILE/2, rowY(ROW.NEST)-10, '#FFD166');
       playTone('feed');
-      // feed hungriest chick
-      var idx = 0, worst = 1e9;
-      state.chicks.forEach(function(c,i){ if (c.hunger < worst){ worst = c.hunger; idx = i; } });
-      state.chicks[idx].hunger = 100;
-      if (state.deliveries % 3 === 0){ state.speedMul = Math.min(1.6, state.speedMul + 0.08); }
     }
   }
 
@@ -1255,9 +1259,11 @@
     ctx.strokeStyle = wingFill; ctx.lineWidth = 2; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(8,-13); ctx.lineTo(6,-18); ctx.stroke();
     ctx.restore();
-    if (carrying){
+    if (carrying > 0){
       ctx.font = '13px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText(EMOJI.worm, cx+16*scale, cy-18*scale);
+      for (var wi=0; wi<carrying; wi++){
+        ctx.fillText(EMOJI.worm, cx+(16+wi*7)*scale, cy-(18+wi*4)*scale);
+      }
     }
   }
 
@@ -1344,7 +1350,12 @@
     document.getElementById('livesVal').textContent = state.infiniteLives ? '∞' : (state.lives > 6 ? ('❤×' + state.lives) : ('❤'.repeat(Math.max(0,state.lives)) + '♡'.repeat(Math.max(0,3-state.lives))));
 
     var ws = document.getElementById('wormStatus'), wt = document.getElementById('wormText');
-    if (state.carryingWorm){ ws.classList.add('active'); wt.textContent = 'a Dora leva a minhoca para o ninho'; }
+    if (state.carryingWorm > 0){
+      ws.classList.add('active');
+      wt.textContent = state.carryingWorm > 1
+        ? ('a Dora leva ' + state.carryingWorm + ' minhocas para o ninho')
+        : 'a Dora leva a minhoca para o ninho';
+    }
     else {
       ws.classList.remove('active');
       var upCount = state.wormHoles.filter(function(h){ return h.phase === 'up'; }).length;
