@@ -210,7 +210,7 @@
     .chick-row .ic{ font-size: 15px; }
     .chick-row .bar{ height: 7px; }
     #chickList{ gap: 4px !important; }
-    .side-panel > div:last-child{ display: none; }
+    .side-panel .pause-wrap{ display: none; }
     .mobile-pause{
       display:flex; align-items:center; justify-content:center;
       width: auto; min-width: 0;
@@ -266,6 +266,8 @@
   }
 
   footer.hint{ text-align:center; color: var(--ink-dim); font-size: 12px; font-weight:700; }
+  footer.hint p{ margin: 0 0 4px; }
+  footer.hint a{ color: inherit; text-decoration: underline; }
 
   @media (prefers-reduced-motion: reduce){ *{ transition: none !important; } }
 </style>
@@ -339,23 +341,26 @@
         <h3>Ninho</h3>
         <div style="display:flex;flex-direction:column;gap:8px" id="chickList"></div>
       </div>
-      <div style="margin-top:auto">
+      <div class="pause-wrap" style="margin-top:auto">
         <button class="icon-btn" id="pauseBtn" style="width:100%">⏸ Pausa</button>
       </div>
+
+      <div class="controls">
+        <div class="dpad">
+          <button class="up" data-dir="up" aria-label="Cima">▲</button>
+          <div class="fill"></div>
+          <button class="left" data-dir="left" aria-label="Esquerda">◀</button>
+          <button class="down" data-dir="down" aria-label="Baixo">▼</button>
+          <button class="right" data-dir="right" aria-label="Direita">▶</button>
+        </div>
+      </div>
+
+      <footer class="hint">
+        <p>Feito com ❤️ pela Lara Lyra</p>
+        <p><a href="https://laralyra.vercel.app">Site da Lara Lyra</a></p>
+      </footer>
     </div>
   </div>
-
-  <div class="controls">
-    <div class="dpad">
-      <button class="up" data-dir="up" aria-label="Cima">▲</button>
-      <div class="fill"></div>
-      <button class="left" data-dir="left" aria-label="Esquerda">◀</button>
-      <button class="down" data-dir="down" aria-label="Baixo">▼</button>
-      <button class="right" data-dir="right" aria-label="Direita">▶</button>
-    </div>
-  </div>
-
-  <footer class="hint">Setas / WASD para mover · cada entrega de minhoca pontua e alimenta o pintainho mais esfomeado</footer>
 </div>
 
 <script>
