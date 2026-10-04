@@ -1039,6 +1039,29 @@
     ctx.beginPath(); ctx.arc(x,y,size*0.55,0,Math.PI*2); ctx.fill();
   }
 
+  // fixed (non-random-per-frame) scatter of little background flowers,
+  // generated once from a hash so they don't jitter every render() call
+  function scatterPoints(n, seed){
+    var pts = [];
+    for (var i=0;i<n;i++){
+      var r1 = Math.abs(Math.sin(seed + i*12.9898) * 43758.5453); r1 -= Math.floor(r1);
+      var r2 = Math.abs(Math.sin(seed + i*78.233)  * 12543.123);  r2 -= Math.floor(r2);
+      pts.push({ fx: r1, fy: r2 });
+    }
+    return pts;
+  }
+  var FLOWER_COLORS = ['#F28FB0', '#FFFFFF', '#C77DFF', '#FFADAD', '#FFD6A5'];
+  var FOREST_FLOWERS_BACK  = scatterPoints(6, 1.7);
+  var FOREST_FLOWERS_FRONT = scatterPoints(6, 5.3);
+  var FIELD_FLOWERS = scatterPoints(8, 9.1).filter(function(p){ return p.fx < 0.34 || p.fx > 0.66; });
+
+  function drawScatteredFlowers(points, y, yFracMin, yFracMax){
+    points.forEach(function(p, i){
+      var fy = yFracMin + p.fy*(yFracMax-yFracMin);
+      drawFlower(p.fx*W, y+fy*TILE, 2.2, FLOWER_COLORS[i%FLOWER_COLORS.length]);
+    });
+  }
+
   function drawNestBowl(tier, cx, cy){
     if (tier <= 0){
       ctx.strokeStyle = '#6B4226'; ctx.lineWidth = 4; ctx.lineCap = 'round';
@@ -1302,6 +1325,8 @@
     ctx.clearRect(0,0,W,H);
     drawForestRow(rowY(ROW.FOREST_BACK), 0);
     drawForestRow(rowY(ROW.FOREST_FRONT), 1);
+    drawScatteredFlowers(FOREST_FLOWERS_BACK, rowY(ROW.FOREST_BACK), 0.68, 0.92);
+    drawScatteredFlowers(FOREST_FLOWERS_FRONT, rowY(ROW.FOREST_FRONT), 0.68, 0.92);
     drawWaterRow(rowY(ROW.LAKE1));
     drawWaterRow(rowY(ROW.LAKE2));
     drawWaterRow(rowY(ROW.LAKE3));
@@ -1311,6 +1336,7 @@
     drawRoadRow(rowY(ROW.ST3), true);
     drawRoadRow(rowY(ROW.ST4), true);
     drawGrassRow(rowY(ROW.FIELD));
+    drawScatteredFlowers(FIELD_FLOWERS, rowY(ROW.FIELD), 0.2, 0.88);
     var nestCenter = drawNestRow(rowY(ROW.NEST));
 
     state.lanes.forEach(function(l){ drawLaneItems(l, rowY(l.row)); });
