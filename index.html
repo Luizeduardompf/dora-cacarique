@@ -277,8 +277,6 @@
       <p class="subtitle">Atravessa a rua e o lago, busca minhocas, alimenta os pintainhos.</p>
     </div>
     <div class="stats statbar">
-      <div class="stat"><div class="label">Pontos</div><div class="value" id="scoreVal">0</div></div>
-      <div class="stat"><div class="label">Recorde</div><div class="value" id="bestVal">0</div></div>
       <button type="button" class="stat money" id="moneyBtn" title="Abrir a loja"><div class="label">Loja 🛍️</div><div class="value" id="moneyVal">0 €</div></button>
       <button type="button" class="stat birdbtn" id="skinBtn" title="Escolher o pássaro">
         <div class="label">Pássaro</div>
@@ -309,10 +307,6 @@
       <div class="overlay" id="gameOverOverlay" style="display:none">
         <h2 id="gameOverTitle">Fim de jogo</h2>
         <p id="gameOverMsg">Os pintainhos ficaram com muita fome.</p>
-        <div class="stats" style="justify-content:center">
-          <div class="stat"><div class="label">Pontos</div><div class="value" id="finalScore">0</div></div>
-          <div class="stat"><div class="label">Recorde</div><div class="value" id="finalBest">0</div></div>
-        </div>
         <button class="btn-primary" id="retryBtn">Jogar outra vez</button>
       </div>
 
@@ -421,7 +415,7 @@
   function saveBest(v){
     try { localStorage.setItem('dora_best', String(v)); } catch(e){}
   }
-  var STARTER_MONEY = 30;
+  var STARTER_MONEY = 50;
   function loadMoney(){
     try {
       var raw = localStorage.getItem('dora_money');
@@ -508,12 +502,32 @@
   }
 
   // ---------- game state ----------
+  // every gap between trees (forest rows alternate which column has a tree)
+  // is a valid worm spot, so holes can appear anywhere a tree isn't.
+  var WORM_SPOTS = (function(){
+    var spots = [];
+    for (var c=1; c<COLS; c+=2) spots.push({ row: ROW.FOREST_BACK, col: c });
+    for (var c2=0; c2<COLS; c2+=2) spots.push({ row: ROW.FOREST_FRONT, col: c2 });
+    return spots;
+  })();
+  function pickWormSpot(avoid){
+    var options = WORM_SPOTS.filter(function(s){
+      return !avoid.some(function(a){ return a.row === s.row && a.col === s.col; });
+    });
+    if (!options.length) options = WORM_SPOTS;
+    return options[Math.floor(Math.random()*options.length)];
+  }
   function makeWormHoles(){
+    var used = [];
     return [
-      { row: ROW.FOREST_FRONT, col: 2, phase: 'up',   timer: WORM_UP_TIME },
-      { row: ROW.FOREST_BACK,  col: 5, phase: 'down', timer: 2 },
-      { row: ROW.FOREST_FRONT, col: 8, phase: 'up',   timer: 5 },
-    ];
+      { phase: 'up',   timer: WORM_UP_TIME },
+      { phase: 'down', timer: 2 },
+      { phase: 'up',   timer: 5 },
+    ].map(function(d){
+      var spot = pickWormSpot(used);
+      used.push(spot);
+      return { row: spot.row, col: spot.col, phase: d.phase, timer: d.timer };
+    });
   }
 
   var state;
@@ -574,8 +588,6 @@
     syncUI();
     var titles = { starve: 'Os pintainhos ficaram esfomeados!', life: 'A Dora já não tem mais vidas.' };
     document.getElementById('gameOverMsg').textContent = titles[reason] || titles.life;
-    document.getElementById('finalScore').textContent = state.score;
-    document.getElementById('finalBest').textContent = state.best;
     document.getElementById('gameOverOverlay').style.display = 'flex';
   }
 
@@ -888,7 +900,12 @@
       hole.timer -= dt;
       if (hole.timer <= 0){
         if (hole.phase === 'up'){ hole.phase = 'down'; hole.timer = WORM_DOWN_TIME; }
-        else { hole.phase = 'up'; hole.timer = WORM_UP_TIME; }
+        else {
+          hole.phase = 'up'; hole.timer = WORM_UP_TIME;
+          var avoid = state.wormHoles.filter(function(h){ return h !== hole; });
+          var spot = pickWormSpot(avoid);
+          hole.row = spot.row; hole.col = spot.col;
+        }
       }
     });
     state.lanes.forEach(function(l){
@@ -1001,10 +1018,8 @@
     for (var c=(offset||0);c<COLS;c+=2){ ctx.fillText(EMOJI.tree, c*TILE+TILE/2, y+TILE/2); }
   }
   function drawWormHole(cx, cy, phase){
-    ctx.fillStyle = 'rgba(0,0,0,.4)';
-    ctx.beginPath(); ctx.ellipse(cx, cy+8, 13, 5.5, 0, 0, Math.PI*2); ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.ellipse(cx, cy+8, 13, 5.5, 0, 0, Math.PI*2); ctx.stroke();
+    // no hole marker is drawn while hidden, so the next spot can't be
+    // memorized ahead of time — the worm simply appears when it's up.
     if (phase === 'up'){
       ctx.font = '22px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillText(EMOJI.worm, cx, cy);
@@ -1151,22 +1166,57 @@
     ctx.restore();
   }
 
+  // body faces -x (left) when unflipped, matching the other lane vectors.
+  // the jaws are two hinged pieces that rotate open/shut around (0,0)
+  // instead of a static emoji, so the bite is an actual moving mouth.
   function drawCrocVector(x, y, w, flip, jawAnim){
     var cx = x + w/2, cy = y + TILE/2;
     ctx.save();
     ctx.translate(cx, cy);
     if (flip) ctx.scale(-1,1);
-    ctx.font = '30px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    var lunge = 1 + jawAnim*0.1;
-    ctx.save(); ctx.scale(lunge, lunge);
-    ctx.fillText(EMOJI.croc, 0, 0);
-    ctx.restore();
-    if (jawAnim > 0.05){
-      ctx.globalAlpha = jawAnim * 0.6;
-      ctx.fillStyle = '#E6483C';
-      ctx.beginPath(); ctx.ellipse(w*0.2, 3, 9+jawAnim*6, 5+jawAnim*3, 0, 0, Math.PI*2); ctx.fill();
-      ctx.globalAlpha = 1;
+
+    var bodyLen = w*0.5, bodyH = TILE*0.3;
+    ctx.fillStyle = '#4F8A3A';
+    roundRect(0, -bodyH/2, bodyLen, bodyH, 7); ctx.fill();
+    ctx.fillStyle = '#3C6E2C';
+    for (var rx=7; rx<bodyLen-5; rx+=9){ ctx.beginPath(); ctx.arc(rx, -bodyH/2+2, 2, 0, Math.PI*2); ctx.fill(); }
+
+    ctx.fillStyle = '#2F5522';
+    ctx.beginPath(); ctx.arc(4, -bodyH*0.62, 3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(12, -bodyH*0.62, 3, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#FFD166';
+    ctx.beginPath(); ctx.arc(4, -bodyH*0.62, 1.3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(12, -bodyH*0.62, 1.3, 0, Math.PI*2); ctx.fill();
+
+    var snoutLen = w*0.46, ang = jawAnim*0.6;
+
+    ctx.save(); ctx.rotate(-ang);
+    ctx.fillStyle = '#4F8A3A';
+    roundRect(-snoutLen, -5, snoutLen, 5, 2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    for (var tx=-snoutLen+4; tx<-4; tx+=7){
+      ctx.beginPath(); ctx.moveTo(tx,0); ctx.lineTo(tx+3.5,0); ctx.lineTo(tx+1.75,-3.2); ctx.closePath(); ctx.fill();
     }
+    ctx.restore();
+
+    ctx.save(); ctx.rotate(ang);
+    ctx.fillStyle = '#4F8A3A';
+    roundRect(-snoutLen, 0, snoutLen, 5, 2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    for (var tx2=-snoutLen+4; tx2<-4; tx2+=7){
+      ctx.beginPath(); ctx.moveTo(tx2,5); ctx.lineTo(tx2+3.5,5); ctx.lineTo(tx2+1.75,1.8); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+
+    if (jawAnim > 0.08){
+      ctx.fillStyle = '#B23A2E';
+      ctx.beginPath();
+      ctx.moveTo(-2, 0);
+      ctx.lineTo(-snoutLen*0.85, -Math.sin(ang)*snoutLen*0.6);
+      ctx.lineTo(-snoutLen*0.85,  Math.sin(ang)*snoutLen*0.6);
+      ctx.closePath(); ctx.fill();
+    }
+
     ctx.restore();
   }
 
@@ -1290,8 +1340,6 @@
 
   // ---------- UI sync ----------
   function syncUI(){
-    document.getElementById('scoreVal').textContent = state.score;
-    document.getElementById('bestVal').textContent = state.best;
     document.getElementById('moneyVal').textContent = state.money + ' €';
     document.getElementById('livesVal').textContent = state.infiniteLives ? '∞' : (state.lives > 6 ? ('❤×' + state.lives) : ('❤'.repeat(Math.max(0,state.lives)) + '♡'.repeat(Math.max(0,3-state.lives))));
 
