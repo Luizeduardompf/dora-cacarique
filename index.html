@@ -548,7 +548,7 @@
       bird: { x: NEST_COL*TILE, row: ROW.NEST, invuln: 0 },
       carryingWorm: 0,
       wormHoles: makeWormHoles(),
-      chicks: [ {hunger:100}, {hunger:100}, {hunger:100} ],
+      chicks: [ {hunger:100}, {hunger:100} ],
       hungerRate: 1.9, // per second
       lanes: buildLanes(),
       floaters: [],
@@ -1321,7 +1321,7 @@
     });
 
     // chicks inside the nest
-    var chickOffsets = [-32, 0, 32];
+    var chickOffsets = [-20, 20];
     state.chicks.forEach(function(c, i){
       drawChickVector(nestCenter.cx + chickOffsets[i], nestCenter.cy, 0.9, 0.5 + 0.5*(c.hunger/100));
     });
